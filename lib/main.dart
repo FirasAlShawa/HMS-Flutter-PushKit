@@ -7,7 +7,34 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:huawei_push/huawei_push.dart';
 
+void backgroundMessageCallback(RemoteMessage remoteMessage) async {
+  print("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
+  String? data = remoteMessage.data;
+  if (data != null) {
+    debugPrint(
+      'Background message is received, sending local notification.',
+    );
+    Push.localNotification(
+      <String, String>{
+        HMSLocalNotificationAttr.TITLE: '[Headless] DataMessage Received',
+        HMSLocalNotificationAttr.MESSAGE: data,
+      },
+    );
+  } else {
+    debugPrint(
+      'Background message is received. There is no data in the message.',
+    );
+  }
+}
+
+// Future<void> push_setup() async {
+//   bool backgroundMessageHandler =
+//       await Push.registerBackgroundMessageHandler(backgroundMessageCallback);
+//   print("backgroundMessageHandler registered: $backgroundMessageHandler");
+// }
+
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 
@@ -100,15 +127,26 @@ class _HomeState extends State<Home> {
       Map<String, dynamic> map = Map<String, dynamic>.from(initialNotification);
       setState(() {
         ++badgeNum;
-        list.add(
-            "MyApp:${map['extras']['name']},toyou${map['extras']['message']}");
+        // list.add(
+        //     "MyApp:${map['extras']['name']},toyou${map['erxtras']['message']}");
       });
-      print("onNotificationOpenedApp " + map['extras']['name'].toString());
-      print("onNotificationOpenedApp " + map['extras']['message'].toString());
+      Map<String, dynamic> mapExtras = Map<String, dynamic>.from(map["extras"]);
+      mapExtras.forEach((key, value) {
+        print("\n myNotificaitonMap =>  $key : ${value.toString()}\n");
+      });
     }
   }
 
   // #endregion
+
+  void myRegisterBackgroundMessageHandler() async {
+    bool backgroundMessageHandler = await Push.registerBackgroundMessageHandler(
+      backgroundMessageCallback,
+    );
+    debugPrint(
+      'backgroundMessageHandler registered: $backgroundMessageHandler',
+    );
+  }
 // #endregion
 
   @override
@@ -117,6 +155,7 @@ class _HomeState extends State<Home> {
     initTokenStream();
     initMessageStream();
     initNotificationListener();
+    myRegisterBackgroundMessageHandler();
   }
 
   @override
@@ -140,6 +179,7 @@ class _HomeState extends State<Home> {
               ),
             ),
             const Text('HMS Push Kit'),
+            Text(_token.toString()),
             ElevatedButton(
                 onPressed: getToken, child: const Text("Get Push Token")),
             TextButton(
