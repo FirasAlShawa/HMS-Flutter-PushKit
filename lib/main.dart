@@ -8,16 +8,29 @@ import 'package:flutter/services.dart';
 import 'package:huawei_push/huawei_push.dart';
 
 void backgroundMessageCallback(RemoteMessage remoteMessage) async {
-  print("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
+  print("---------------------------------------------");
   String? data = remoteMessage.data;
   if (data != null) {
     debugPrint(
       'Background message is received, sending local notification.',
     );
+    print(data);
+    //decode the data payload
+    var decodePayload = jsonDecode(data);
+    //get the flat params first
+    Map<String, dynamic> map = Map<String, dynamic>.from(decodePayload);
+    //get the data map after that
+    Map<String, dynamic> datamap = Map<String, dynamic>.from(map['data']);
+
     Push.localNotification(
-      <String, String>{
-        HMSLocalNotificationAttr.TITLE: '[Headless] DataMessage Received',
-        HMSLocalNotificationAttr.MESSAGE: data,
+      <String, dynamic>{
+        // HMSLocalNotificationAttr.TITLE: map['title'],
+        // HMSLocalNotificationAttr.MESSAGE: map['message'],
+        // HMSLocalNotificationAttr.DATA: "Nigga!",
+
+        HMSLocalNotificationAttr.TITLE: 'Notification Title',
+        HMSLocalNotificationAttr.MESSAGE: 'Notification Message',
+        HMSLocalNotificationAttr.DATA: {"key1": "value1", "key2": "nigga2"}
       },
     );
   } else {
@@ -122,7 +135,15 @@ class _HomeState extends State<Home> {
         .listen((remoteMessage) => _onNotificationOpenedApp(remoteMessage));
   }
 
+  // void _onNotificationOpenedApp(RemoteMessage remoteMessage) {
+  //   if (remoteMessage != null) {
+  //     var decodedobj = json.decode(remoteMessage.toMap().toString());
+  //     print("_onNotificationOpenedApp => ${decodedobj.toString()}");
+  //   }
+  // }
+
   void _onNotificationOpenedApp(dynamic initialNotification) {
+    print("it is clicked!");
     if (initialNotification != null) {
       Map<String, dynamic> map = Map<String, dynamic>.from(initialNotification);
       setState(() {
@@ -131,6 +152,11 @@ class _HomeState extends State<Home> {
         //     "MyApp:${map['extras']['name']},toyou${map['erxtras']['message']}");
       });
       Map<String, dynamic> mapExtras = Map<String, dynamic>.from(map["extras"]);
+
+      map.forEach((key, value) {
+        print("\n myNotificaitonMap =>  $key : ${value.toString()}\n");
+      });
+
       mapExtras.forEach((key, value) {
         print("\n myNotificaitonMap =>  $key : ${value.toString()}\n");
       });
@@ -147,6 +173,26 @@ class _HomeState extends State<Home> {
       'backgroundMessageHandler registered: $backgroundMessageHandler',
     );
   }
+
+  void getInitialNotification() async {
+    dynamic initialNotification = await Push.getInitialNotification();
+
+    if (initialNotification != "null") {
+      Map<String, dynamic> map = Map<String, dynamic>.from(initialNotification);
+
+      Map<String, dynamic> mapExtras = Map<String, dynamic>.from(map["extras"]);
+
+      map.forEach((key, value) {
+        print("\n getInitialNotification =>  $key : ${value.toString()}\n");
+      });
+
+      mapExtras.forEach((key, value) {
+        print("\n getInitialNotification =>  $key : ${value.toString()}\n");
+      });
+    } else {
+      print("getInitialNotification: " + initialNotification);
+    }
+  }
 // #endregion
 
   @override
@@ -156,6 +202,7 @@ class _HomeState extends State<Home> {
     initMessageStream();
     initNotificationListener();
     myRegisterBackgroundMessageHandler();
+    getInitialNotification();
   }
 
   @override
