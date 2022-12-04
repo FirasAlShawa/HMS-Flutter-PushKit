@@ -177,21 +177,33 @@ class _HomeState extends State<Home> {
   void getInitialNotification() async {
     dynamic initialNotification = await Push.getInitialNotification();
 
-    if (initialNotification != "null") {
+    if (initialNotification == null) {
+      print("getInitialNotification is : $initialNotification");
+    } else {
       Map<String, dynamic> map = Map<String, dynamic>.from(initialNotification);
 
-      Map<String, dynamic> mapExtras = Map<String, dynamic>.from(map["extras"]);
+      Map<String, dynamic> mapExtras =
+          Map<String, dynamic>.from(map["extras"]["notification"]);
 
-      map.forEach((key, value) {
-        print("\n getInitialNotification =>  $key : ${value.toString()}\n");
+      Map<String, dynamic> dataMap =
+          Map<String, dynamic>.from(jsonDecode(mapExtras["data"]));
+
+      dataMap.forEach((key, value) {
+        print(
+            "\n getInitialNotification =>  $key : ${value.toString()} ${value.runtimeType}\n");
       });
 
-      mapExtras.forEach((key, value) {
-        print("\n getInitialNotification =>  $key : ${value.toString()}\n");
-      });
-    } else {
-      print("getInitialNotification: " + initialNotification);
+      if (mounted) {
+        setState(() {
+          ++badgeNum;
+          list.add(dataMap.toString());
+        });
+      }
     }
+    // if (initialNotification != "null") {
+
+    // } else {
+    // }
   }
 // #endregion
 
