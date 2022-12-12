@@ -1,0 +1,34 @@
+
+----------------
+Notification => 
+{
+    "validate_only": false,
+    "message": {
+        "android": {
+        "data":"{ \"data\" : {\"greeting\":\"Welcome to quicktype!\",\"instructions\":\"Type or paste JSON here 16:49  \"}}",
+            "notification": {
+                "foreground_show": true,
+                "title": "test title",
+                "body": "test body",
+                "click_action": {
+                    "type": 3
+                }
+            }
+        },
+        "token": [
+            "IQAAAACy0xlPAAC5p1UQSCWerIWSP6FKu5ZyFAFL2lGdVzJzzMc9yOs_h9swExDgiPpMv54AoGxqsggts8G-ynH9OSK9gF5mkE46rYHRCn7dnVi4Kw"
+        ]
+    }
+}
+----------------
+Data Message => 
+
+{
+    "validate_only": false,
+    "message": {
+        "data":"{\"greeting\":\"Welcome to quicktype!\",\"instructions\":\"Type or paste JSON here the app was killed! \"}",
+             "token": [
+            "IQAAAACy0xlPAAC5p1UQSCWerIWSP6FKu5ZyFAFL2lGdVzJzzMc9yOs_h9swExDgiPpMv54AoGxqsggts8G-ynH9OSK9gF5mkE46rYHRCn7dnVi4Kw"
+        ]
+    }
+}

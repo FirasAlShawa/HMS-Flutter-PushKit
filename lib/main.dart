@@ -4,20 +4,13 @@ import 'dart:ffi';
 
 import 'package:badges/badges.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/material.dart';
 import 'package:hms_flutter_push/DataModel.dart';
 import 'package:huawei_push/huawei_push.dart';
 
 void backgroundMessageCallback(RemoteMessage remoteMessage) async {
   DataModel model = dataModelFromJson(remoteMessage.getData.toString());
-
-  //decode the data payload
-  // var decodePayload = jsonDecode(data);
-  // //get the flat params first
-  // Map<String, dynamic> map = Map<String, dynamic>.from(decodePayload);
-  // //get the data map after that
-  // Map<String, dynamic> datamap = Map<String, dynamic>.from(map['data']);
 
   Push.localNotification(
     <String, dynamic>{
@@ -26,7 +19,6 @@ void backgroundMessageCallback(RemoteMessage remoteMessage) async {
       HMSLocalNotificationAttr.DATA: model.toJson()
     },
   );
-  // }
 }
 
 void main() {
@@ -63,17 +55,14 @@ class _HomeState extends State<Home> {
 // #region HMS Push
 
   // #region Get Token
-  void _onTokenEvent(String event) {
+  void _onTokenEvent(String event) async {
     setState(() {
       _token = event;
     });
-
-    print("Token Event : " + _token);
   }
 
   void _onTokenError(Object error) {
     PlatformException e = error as PlatformException;
-    print("TokenErrorEvent" + e.message!);
   }
 
   Future<void> initTokenStream() async {
@@ -88,14 +77,11 @@ class _HomeState extends State<Home> {
 
   // #region ReceiveDataMessage
   Future<void> initMessageStream() async {
-    print("initMessageStream before");
     if (!mounted) return;
-    print("initMessageStream is mounted");
     Push.onMessageReceivedStream.listen(_onMessageReceived);
   }
 
   void _onMessageReceived(RemoteMessage remoteMessage) {
-    print(remoteMessage.data);
     if (remoteMessage.data != null) {
       DataModel dataModel = dataModelFromJson(remoteMessage.data!);
       setState(() {
@@ -104,10 +90,6 @@ class _HomeState extends State<Home> {
       });
     }
     // DataModel dataModel = dataModelFromJson(map["extras"]["data"]);
-  }
-
-  void _onMessageReceiveError() {
-    print("_onMessageReceiveError");
   }
   // #endregion
 
@@ -132,9 +114,7 @@ class _HomeState extends State<Home> {
           ++badgeNum;
           list.add(dataModel);
         });
-      } else {
-        print("WTF");
-      }
+      } else {}
     }
   }
   // #endregion
@@ -143,9 +123,6 @@ class _HomeState extends State<Home> {
   void myRegisterBackgroundMessageHandler() async {
     bool backgroundMessageHandler = await Push.registerBackgroundMessageHandler(
       backgroundMessageCallback,
-    );
-    debugPrint(
-      'backgroundMessageHandler registered: $backgroundMessageHandler',
     );
   }
   // #endregion
@@ -157,7 +134,6 @@ class _HomeState extends State<Home> {
       // DataModel dataModel = dataModelFromJson(initialNotification.)
 
       try {
-        print(initialNotification);
         Map<String, dynamic> map =
             Map<String, dynamic>.from(initialNotification);
         Map<String, dynamic> mapExtras =
@@ -170,7 +146,6 @@ class _HomeState extends State<Home> {
           });
         }
       } catch (e) {
-        print(initialNotification);
         Map<String, dynamic> map =
             Map<String, dynamic>.from(initialNotification);
         //get your data from the extra object
@@ -200,6 +175,10 @@ class _HomeState extends State<Home> {
     getInitialNotification();
   }
 
+  final snackBar = const SnackBar(
+    content: Text('Check the token in your clipboard'),
+  );
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -211,21 +190,38 @@ class _HomeState extends State<Home> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Badge(
-              badgeContent: Text(
-                badgeNum.toString(),
-                style: const TextStyle(color: Colors.white),
-              ),
-              badgeColor: Colors.blue,
-              child: const Icon(
-                Icons.notifications,
-                size: 50.0,
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Badge(
+                    badgeContent: Text(
+                      badgeNum.toString(),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    badgeColor: Colors.blue,
+                    child: const Icon(
+                      Icons.notifications,
+                      size: 100.0,
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      getToken();
+                      await Clipboard.setData(
+                          ClipboardData(text: "Push Kit : $_token"));
+                      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Text("Get and Copy\n Push Token"),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const Text('HMS Push Kit'),
-            Text(_token.toString()),
-            ElevatedButton(
-                onPressed: getToken, child: const Text("Get Push Token")),
             list.length > 0
                 ? Expanded(
                     child: ListView.builder(
